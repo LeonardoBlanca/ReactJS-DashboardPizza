@@ -1,4 +1,6 @@
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination } from "@/components/pagination";
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Helmet } from "react-helmet-async";
 import { OrderTableRow } from "./order-table-row";
 import { OrderTableFilters } from "./order-table-filters";
@@ -9,7 +11,7 @@ export function Orders() {
       <Helmet title="Pedidos" />
       <div className="flex flex-col gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Pedidos</h1>
-      </div>
+    
       <div className="space-y-2.5">
         <OrderTableFilters />
         <div className="border rounded-md">
@@ -35,6 +37,9 @@ export function Orders() {
                 </TableBody>
                     
             </Table>
+            </div>
+
+            <Pagination pageIndex={0} totalCount={105} perPage={10}/>
         </div>
       </div>
     </>
