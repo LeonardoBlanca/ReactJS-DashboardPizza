@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios.ts";
 
-interface GetManagedRestaurantResponse {
+export interface GetManagedRestaurantResponse {
   name: string;
   id: string;
   createdAt: Date | null;
