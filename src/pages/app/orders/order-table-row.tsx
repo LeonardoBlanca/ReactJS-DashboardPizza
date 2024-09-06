@@ -7,6 +7,9 @@ import { OrderStatus } from "@/components/order-status.tsx";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { cancelOrder } from "@/api/cancel-order.ts";
+import { GetOrdersResponse } from "@/api/get-orders.ts";
 
 export interface OrderTableRowProps {
   order: {
@@ -20,6 +23,38 @@ export interface OrderTableRowProps {
 
 export function OrderTableRow({ order }: OrderTableRowProps) {
   const [isDetailsOpen, setIsDetaislOpen] = useState(false);
+  const queryclient = useQueryClient();
+
+  // Vai percorrer todas as listas de pedidos que eu tenho carregadas, filtradas, paginadas (em cache)
+  // Quando ele encontrar o id do pedido que é igual ao que eu passei, ele vai cancelar o pedido.
+  // Ele não vai apagar o cache, o arquivo ainda vai carregar instantâneo
+  const { mutateAsync: cancelOrderFn } = useMutation({
+    mutationFn: cancelOrder,
+    //     Alterar o cache para retornar uma resposta do cancelamento do pedido
+    // Não precisa de interface otimista (alterar visualmente para o usuário e se der erro voltar atrás depois de 5 seg)
+    onSuccess(_, { orderId }) {
+      const ordersListCache = queryclient.getQueriesData<GetOrdersResponse>({
+        queryKey: ["orders"],
+      });
+
+      ordersListCache.forEach(([cacheKey, cacheData]) => {
+        if (!cacheData) {
+          return;
+        }
+
+        queryclient.setQueryData<GetOrdersResponse>(cacheKey, {
+          ...cacheData,
+          orders: cacheData.orders.map((order) => {
+            if (order.orderId == orderId) {
+              return { ...order, status: "canceled" };
+            }
+
+            return order;
+          }),
+        });
+      });
+    },
+  });
 
   return (
     <TableRow>
@@ -60,7 +95,12 @@ export function OrderTableRow({ order }: OrderTableRowProps) {
         </Button>
       </TableCell>
       <TableCell>
-        <Button variant="ghost" size="xs">
+        <Button
+          disabled={!["pending", "processing"].includes(order.status)} // Desativa quando não é pending ou processing
+          onClick={() => cancelOrderFn({ orderId: order.orderId })} // Muda o status para cancelado quando clico
+          variant="ghost"
+          size="xs"
+        >
           <X className="mr-2 h-3 w-3" />
           Cancelar
         </Button>

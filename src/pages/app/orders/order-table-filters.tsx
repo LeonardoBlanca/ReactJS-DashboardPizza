@@ -49,7 +49,7 @@ export function OrderTableFilters() {
       if (customerName) {
         state.set("customerName", customerName);
       } else {
-        state.delete("orderId");
+        state.delete("customerName");
       }
       // Se eu preenchi o status, eu quero filtrar pelo status
       if (status) {
@@ -72,6 +72,7 @@ export function OrderTableFilters() {
       state.delete('status')
       state.set('page', '1')
 
+      return state
     })
 
     reset({
